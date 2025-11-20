@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formato de Visita Institucional - Firma Digital</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Formato de Visita Institucional</h1>
+            <p class="subtitle">Sistema de firma digital para actas de visita a instituciones educativas</p>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2><i>📋</i> Información de la Visita</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="institutionName">Nombre de la Institución</label>
+                        <input type="text" id="institutionName" placeholder="Ej: Colegio Nacional San Juan">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="visitDate">Fecha de Visita</label>
+                        <input type="date" id="visitDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="visitorName">Nombre del Visitante</label>
+                        <input type="text" id="visitorName" placeholder="Ej: María González">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="visitorPosition">Cargo del Visitante</label>
+                        <input type="text" id="visitorPosition" placeholder="Ej: Supervisor Regional">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rectorName">Nombre del Rector/Director</label>
+                        <input type="text" id="rectorName" placeholder="Ej: Carlos Rodríguez">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="institutionAddress">Dirección de la Institución</label>
+                        <input type="text" id="institutionAddress" placeholder="Ej: Calle 123 #45-67">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><i>🖊️</i> Firmas Digitales</h2>
+                <p>Puedes cargar imágenes de las firmas o dibujarlas directamente en el área de dibujo.</p>
+                
+                <div class="signature-options">
+                    <div class="option">
+                        <h3><i>👤</i> Firma del Visitante</h3>
+                        <div class="upload-area" id="uploadArea1">
+                            <i>📤</i>
+                            <p>Haz clic para subir una imagen de la firma</p>
+                            <input type="file" id="fileInput1" accept="image/*" class="hidden">
+                        </div>
+                        <p>O dibuja la firma:</p>
+                        <div class="canvas-container">
+                            <canvas id="signatureCanvas1" width="400" height="150"></canvas>
+                        </div>
+                        <div class="canvas-controls">
+                            <button class="secondary" id="clearCanvas1"><i>🗑️</i> Limpiar</button>
+                            <button id="saveCanvas1"><i>💾</i> Guardar Firma</button>
+                        </div>
+                    </div>
+                    
+                    <div class="option">
+                        <h3><i>👔</i> Firma del Rector/Director</h3>
+                        <div class="upload-area" id="uploadArea2">
+                            <i>📤</i>
+                            <p>Haz clic para subir una imagen de la firma</p>
+                            <input type="file" id="fileInput2" accept="image/*" class="hidden">
+                        </div>
+                        <p>O dibuja la firma:</p>
+                        <div class="canvas-container">
+                            <canvas id="signatureCanvas2" width="400" height="150"></canvas>
+                        </div>
+                        <div class="canvas-controls">
+                            <button class="secondary" id="clearCanvas2"><i>🗑️</i> Limpiar</button>
+                            <button id="saveCanvas2"><i>💾</i> Guardar Firma</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="signature-preview">
+                    <div class="signature-box">
+                        <div class="signature-img" id="preview1">
+                            <p>Vista previa Firma Visitante</p>
+                        </div>
+                        <p>Firma Visitante</p>
+                    </div>
+                    
+                    <div class="signature-box">
+                        <div class="signature-img" id="preview2">
+                            <p>Vista previa Firma Rector</p>
+                        </div>
+                        <p>Firma Rector/Director</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2><i>📄</i> Vista Previa del Documento</h2>
+                
+                <div class="actions">
+                    <button id="loadTemplate"><i>📂</i> Cargar Formato Existente</button>
+                    <input type="file" id="templateInput" accept=".pdf,.doc,.docx" class="hidden">
+                </div>
+                
+                <div id="statusMessage" class="hidden status-message"></div>
+                
+                <div class="document-preview" id="documentPreview">
+                    <!-- Documento por defecto -->
+                    <h2 style="text-align: center; color: var(--primary);">ACTA DE VISITA INSTITUCIONAL</h2>
+                    
+                    <div style="margin: 20px 0;">
+                        <p><strong>Institución:</strong> <span id="previewInstitution">[Nombre de la Institución]</span></p>
+                        <p><strong>Dirección:</strong> <span id="previewAddress">[Dirección de la Institución]</span></p>
+                        <p><strong>Fecha de Visita:</strong> <span id="previewDate">[Fecha de Visita]</span></p>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <p>Por medio de la presente se deja constancia de la visita realizada a la institución educativa mencionada, en la fecha señalada, por parte de <strong><span id="previewVisitor">[Nombre del Visitante]</span></strong>, quien se desempeña como <strong><span id="previewPosition">[Cargo del Visitante]</span></strong>.</p>
+                        
+                        <p style="margin-top: 15px;">Durante la visita se verificaron los siguientes aspectos:</p>
+                        <ul style="margin-left: 30px; margin-top: 10px;">
+                            <li>Estado de la infraestructura física</li>
+                            <li>Disponibilidad de recursos educativos</li>
+                            <li>Cumplimiento del calendario académico</li>
+                            <li>Condiciones de seguridad y salubridad</li>
+                        </ul>
+                        
+                        <p style="margin-top: 15px;">Se encontró que la institución cumple con los requisitos establecidos en el marco de la normativa educativa vigente.</p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+                        <div style="width: 45%; text-align: center;">
+                            <p><strong>FIRMA DEL VISITANTE</strong></p>
+                            <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin: 10px 0; position: relative;">
+                                <div class="signature-placeholder" id="signaturePlaceholder1" style="position: static;">
+                                    <p>Firma Visitante aparecerá aquí</p>
+                                </div>
+                            </div>
+                            <p>Nombre: <span id="previewVisitorName">[Nombre del Visitante]</span></p>
+                            <p>Cargo: <span id="previewVisitorPosition">[Cargo del Visitante]</span></p>
+                            <p>Fecha: <span id="previewVisitorDate">[Fecha]</span></p>
+                        </div>
+                        
+                        <div style="width: 45%; text-align: center;">
+                            <p><strong>FIRMA DEL RECTOR/DIRECTOR</strong></p>
+                            <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin: 10px 0; position: relative;">
+                                <div class="signature-placeholder" id="signaturePlaceholder2" style="position: static;">
+                                    <p>Firma Rector aparecerá aquí</p>
+                                </div>
+                            </div>
+                            <p>Nombre: <span id="previewRectorName">[Nombre del Rector]</span></p>
+                            <p>Cargo: Rector/Director</p>
+                            <p>Fecha: <span id="previewRectorDate">[Fecha]</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button class="secondary" id="resetAll"><i>🔄</i> Reiniciar Todo</button>
+                    <button class="success" id="generatePDF"><i>📥</i> Generar y Descargar PDF</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Sistema de Firma Digital para Formatos de Visita Institucional &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha actual por defecto
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('visitDate').value = today;
+            
+            // Actualizar vista previa con datos del formulario
+            function updatePreview() {
+                document.getElementById('previewInstitution').textContent = 
+                    document.getElementById('institutionName').value || '[Nombre de la Institución]';
+                document.getElementById('previewAddress').textContent = 
+                    document.getElementById('institutionAddress').value || '[Dirección de la Institución]';
+                document.getElementById('previewDate').textContent = 
+                    document.getElementById('visitDate').value || '[Fecha de Visita]';
+                document.getElementById('previewVisitor').textContent = 
+                    document.getElementById('visitorName').value || '[Nombre del Visitante]';
+                document.getElementById('previewPosition').textContent = 
+                    document.getElementById('visitorPosition').value || '[Cargo del Visitante]';
+                document.getElementById('previewVisitorName').textContent = 
+                    document.getElementById('visitorName').value || '[Nombre del Visitante]';
+                document.getElementById('previewVisitorPosition').textContent = 
+                    document.getElementById('visitorPosition').value || '[Cargo del Visitante]';
+                document.getElementById('previewRectorName').textContent = 
+                    document.getElementById('rectorName').value || '[Nombre del Rector]';
+                
+                // Fechas de firma (usar fecha actual)
+                const currentDate = new Date().toLocaleDateString('es-ES');
+                document.getElementById('previewVisitorDate').textContent = currentDate;
+                document.getElementById('previewRectorDate').textContent = currentDate;
+            }
+            
+            // Configuración de los canvas para dibujar
+            const canvas1 = document.getElementById('signatureCanvas1');
+            const canvas2 = document.getElementById('signatureCanvas2');
+            const ctx1 = canvas1.getContext('2d');
+            const ctx2 = canvas2.getContext('2d');
+            
+            // Variables para el dibujo
+            let isDrawing1 = false;
+            let isDrawing2 = false;
+            let lastX1, lastY1;
+            let lastX2, lastY2;
+            
+            // Configurar canvas 1
+            function setupCanvas1() {
+                ctx1.lineWidth = 2;
+                ctx1.lineJoin = 'round';
+                ctx1.lineCap = 'round';
+                ctx1.strokeStyle = '#000';
+                
+                canvas1.addEventListener('mousedown', startDrawing1);
+                canvas1.addEventListener('mousemove', draw1);
+                canvas1.addEventListener('mouseup', stopDrawing1);
+                canvas1.addEventListener('mouseout', stopDrawing1);
+                
+                // Soporte para dispositivos táctiles
+                canvas1.addEventListener('touchstart', startDrawingTouch1);
+                canvas1.addEventListener('touchmove', drawTouch1);
+                canvas1.addEventListener('touchend', stopDrawing1);
+            }
+            
+            // Configurar canvas 2
+            function setupCanvas2() {
+                ctx2.lineWidth = 2;
+                ctx2.lineJoin = 'round';
+                ctx2.lineCap = 'round';
+                ctx2.strokeStyle = '#000';
+                
+                canvas2.addEventListener('mousedown', startDrawing2);
+                canvas2.addEventListener('mousemove', draw2);
+                canvas2.addEventListener('mouseup', stopDrawing2);
+                canvas2.addEventListener('mouseout', stopDrawing2);
+                
+                // Soporte para dispositivos táctiles
+                canvas2.addEventListener('touchstart', startDrawingTouch2);
+                canvas2.addEventListener('touchmove', drawTouch2);
+                canvas2.addEventListener('touchend', stopDrawing2);
+            }
+            
+            // Funciones para el canvas 1
+            function startDrawing1(e) {
+                isDrawing1 = true;
+                [lastX1, lastY1] = [e.offsetX, e.offsetY];
+            }
+            
+            function startDrawingTouch1(e) {
+                e.preventDefault();
+                isDrawing1 = true;
+                const rect = canvas1.getBoundingClientRect();
+                const touch = e.touches[0];
+                [lastX1, lastY1] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function draw1(e) {
+                if (!isDrawing1) return;
+                ctx1.beginPath();
+                ctx1.moveTo(lastX1, lastY1);
+                ctx1.lineTo(e.offsetX, e.offsetY);
+                ctx1.stroke();
+                [lastX1, lastY1] = [e.offsetX, e.offsetY];
+            }
+            
+            function drawTouch1(e) {
+                if (!isDrawing1) return;
+                e.preventDefault();
+                const rect = canvas1.getBoundingClientRect();
+                const touch = e.touches[0];
+                ctx1.beginPath();
+                ctx1.moveTo(lastX1, lastY1);
+                ctx1.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx1.stroke();
+                [lastX1, lastY1] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function stopDrawing1() {
+                isDrawing1 = false;
+            }
+            
+            // Funciones para el canvas 2
+            function startDrawing2(e) {
+                isDrawing2 = true;
+                [lastX2, lastY2] = [e.offsetX, e.offsetY];
+            }
+            
+            function startDrawingTouch2(e) {
+                e.preventDefault();
+                isDrawing2 = true;
+                const rect = canvas2.getBoundingClientRect();
+                const touch = e.touches[0];
+                [lastX2, lastY2] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function draw2(e) {
+                if (!isDrawing2) return;
+                ctx2.beginPath();
+                ctx2.moveTo(lastX2, lastY2);
+                ctx2.lineTo(e.offsetX, e.offsetY);
+                ctx2.stroke();
+                [lastX2, lastY2] = [e.offsetX, e.offsetY];
+            }
+            
+            function drawTouch2(e) {
+                if (!isDrawing2) return;
+                e.preventDefault();
+                const rect = canvas2.getBoundingClientRect();
+                const touch = e.touches[0];
+                ctx2.beginPath();
+                ctx2.moveTo(lastX2, lastY2);
+                ctx2.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx2.stroke();
+                [lastX2, lastY2] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function stopDrawing2() {
+                isDrawing2 = false;
+            }
+            
+            // Limpiar canvas
+            document.getElementById('clearCanvas1').addEventListener('click', function() {
+                ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            });
+            
+            document.getElementById('clearCanvas2').addEventListener('click', function() {
+                ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+            });
+            
+            // Guardar firmas del canvas
+            document.getElementById('saveCanvas1').addEventListener('click', function() {
+                const dataURL = canvas1.toDataURL('image/png');
+                displaySignature(1, dataURL);
+                showStatus('Firma del visitante guardada correctamente', 'success');
+            });
+            
+            document.getElementById('saveCanvas2').addEventListener('click', function() {
+                const dataURL = canvas2.toDataURL('image/png');
+                displaySignature(2, dataURL);
+                showStatus('Firma del rector guardada correctamente', 'success');
+            });
+            
+            // Subir archivos de firma
+            document.getElementById('uploadArea1').addEventListener('click', function() {
+                document.getElementById('fileInput1').click();
+            });
+            
+            document.getElementById('uploadArea2').addEventListener('click', function() {
+                document.getElementById('fileInput2').click();
+            });
+            
+            document.getElementById('fileInput1').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        displaySignature(1, event.target.result);
+                        showStatus('Firma del visitante cargada correctamente', 'success');
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            document.getElementById('fileInput2').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        displaySignature(2, event.target.result);
+                        showStatus('Firma del rector cargada correctamente', 'success');
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            // Mostrar firmas en el documento
+            function displaySignature(signatureNumber, dataURL) {
+                const previewElement = document.getElementById(`preview${signatureNumber}`);
+                const placeholderElement = document.getElementById(`signaturePlaceholder${signatureNumber}`);
+                
+                previewElement.innerHTML = `<img src="${dataURL}" alt="Firma ${signatureNumber}">`;
+                placeholderElement.innerHTML = `<img src="${dataURL}" alt="Firma ${signatureNumber}" style="max-height: 100%; max-width: 100%;">`;
+                
+                // Guardar en localStorage para persistencia
+                localStorage.setItem(`signature${signatureNumber}`, dataURL);
+            }
+            
+            // Cargar firmas guardadas (si existen)
+            function loadSavedSignatures() {
+                const savedSignature1 = localStorage.getItem('signature1');
+                const savedSignature2 = localStorage.getItem('signature2');
+                
+                if (savedSignature1) {
+                    displaySignature(1, savedSignature1);
+                }
+                
+                if (savedSignature2) {
+                    displaySignature(2, savedSignature2);
+                }
+            }
+            
+            // Cargar plantilla existente
+            document.getElementById('loadTemplate').addEventListener('click', function() {
+                document.getElementById('templateInput').click();
+            });
+            
+            document.getElementById('templateInput').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const fileName = file.name.toLowerCase();
+                    
+                    if (fileName.endsWith('.pdf')) {
+                        showStatus('Plantilla PDF cargada. Las firmas se agregarán al generar el documento.', 'success');
+                    } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                        showStatus('Plantilla Word cargada. Para una integración completa, se recomienda convertir a PDF primero.', 'success');
+                    } else {
+                        showStatus('Formato de archivo no compatible. Use PDF o Word.', 'error');
+                    }
+                    
+                    // Aquí normalmente procesarías el archivo cargado
+                    // Para esta demo, solo mostramos un mensaje
+                }
+            });
+            
+            // Generar PDF
+            document.getElementById('generatePDF').addEventListener('click', function() {
+                // Validar que se hayan completado los datos necesarios
+                if (!document.getElementById('institutionName').value || 
+                    !document.getElementById('visitorName').value || 
+                    !document.getElementById('rectorName').value) {
+                    showStatus('Por favor, complete todos los campos obligatorios antes de generar el PDF.', 'error');
+                    return;
+                }
+                
+                const savedSignature1 = localStorage.getItem('signature1');
+                const savedSignature2 = localStorage.getItem('signature2');
+                
+                if (!savedSignature1 || !savedSignature2) {
+                    showStatus('Ambas firmas son necesarias para generar el documento.', 'error');
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Agregar contenido al PDF
+                const documentPreview = document.getElementById('documentPreview');
+                
+                // Actualizar vista previa antes de generar PDF
+                updatePreview();
+                
+                html2canvas(documentPreview).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = doc.internal.pageSize.getWidth();
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    doc.save(`acta_visita_${document.getElementById('institutionName').value.replace(/\s+/g, '_')}.pdf`);
+                    showStatus('Documento generado y descargado correctamente', 'success');
+                });
+            });
+            
+            // Reiniciar todo
+            document.getElementById('resetAll').addEventListener('click', function() {
+                if (confirm('¿Estás seguro de que quieres reiniciar todo? Se perderán todos los datos y firmas guardadas.')) {
+                    // Limpiar formularios
+                    document.getElementById('institutionName').value = '';
+                    document.getElementById('visitDate').value = today;
+                    document.getElementById('visitorName').value = '';
+                    document.getElementById('visitorPosition').value = '';
+                    document.getElementById('rectorName').value = '';
+                    document.getElementById('institutionAddress').value = '';
+                    
+                    // Limpiar canvas
+                    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+                    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+                    
+                    // Limpiar vistas previas
+                    document.getElementById('preview1').innerHTML = '<p>Vista previa Firma Visitante</p>';
+                    document.getElementById('preview2').innerHTML = '<p>Vista previa Firma Rector</p>';
+                    
+                    document.getElementById('signaturePlaceholder1').innerHTML = '<p>Firma Visitante aparecerá aquí</p>';
+                    document.getElementById('signaturePlaceholder2').innerHTML = '<p>Firma Rector aparecerá aquí</p>';
+                    
+                    // Limpiar localStorage
+                    localStorage.removeItem('signature1');
+                    localStorage.removeItem('signature2');
+                    
+                    // Limpiar inputs de archivo
+                    document.getElementById('fileInput1').value = '';
+                    document.getElementById('fileInput2').value = '';
+                    document.getElementById('templateInput').value = '';
+                    
+                    // Actualizar vista previa
+                    updatePreview();
+                    
+                    showStatus('Todos los datos han sido reiniciados', 'success');
+                }
+            });
+            
+            // Mostrar mensajes de estado
+            function showStatus(message, type) {
+                const statusElement = document.getElementById('statusMessage');
+                statusElement.textContent = message;
+                statusElement.className = 'status-message';
+                
+                if (type === 'success') {
+                    statusElement.classList.add('status-success');
+                } else if (type === 'error') {
+                    statusElement.classList.add('status-error');
+                }
+                
+                statusElement.classList.remove('hidden');
+                
+                // Ocultar después de 5 segundos
+                setTimeout(() => {
+                    statusElement.classList.add('hidden');
+                }, 5000);
+            }
+            
+            // Actualizar vista previa cuando cambien los campos del formulario
+            const formInputs = document.querySelectorAll('input, select');
+            formInputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+            
+            // Inicializar
+            setupCanvas1();
+            setupCanvas2();
+            loadSavedSignatures();
+            updatePreview();
+        });
+    </script>
+    
+    <!-- Nota: En un entorno de producción, necesitarías incluir html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>
